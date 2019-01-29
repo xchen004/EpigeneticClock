@@ -65,7 +65,7 @@ sample_id should be the first column of chronological age file.
 The methylation call file has the same format as the input file for methylKit analysis. 
 Below is the example:
 
-chrBase   chr 	base  	strand  	coverage  	freqC 	freqT
+chrBase		chr 	base  	strand  	coverage  	freqC 	freqT
 
 chr8.99651	  8	  99651 	F 	1 	100 	0
 
