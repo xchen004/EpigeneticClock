@@ -66,22 +66,15 @@ The methylation call file has the same format as the input file for methylKit an
 Below is the example:
 
 chrBase	chr	base	strand	coverage	freqC	freqT
+
 chr8.99651	8	99651	F	1	100	0
+
 chr8.99661	8	99661	F	1	100	0
+
 chr8.99675	8	99675	F	2	50	50
+
 chr8.99679	8	99679	F	2	50	50
-chr8.99684	8	99684	F	2	100	0
-chr8.99692	8	99692	F	2	100	0
-chr8.99696	8	99696	F	2	100	0
-chr8.99724	8	99724	F	1	0	100
-chr8.137505	8	137505	F	3	100	0
-chr8.137535	8	137535	F	3	100	0
-chr8.155954	8	155954	F	56	98.21	1.79
-chr8.155973	8	155973	F	56	100	0
-chr8.155976	8	155976	F	56	83.93	16.07
-chr8.155981	8	155981	F	56	100	0
-chr8.155987	8	155987	F	56	94.64	5.36
-chr8.156274	8	156274	F	22	95.45	4.55
+
 
 The chronological age file contains "sample_id" and "age" column showing the chronological age of each sample.
 
