@@ -6,7 +6,7 @@ We develop three epigenetic clocks: Array based human epigenetic clock, sequenci
 
 The clock is used to predict DNAm age of array based methylation data. Please run code in 'Predict_Age_Human_Array.R'.
 
-Example:
+### Example:
 
 R_code=/code_path/Predict_Age_Human_Array.R
 
@@ -18,7 +18,7 @@ mkdir -p $log_path
 
 R CMD BATCH --no-save --no-restore '--args /input_path /ref_path/' $R_code $log_file
 
-Description:
+### Description:
 
 R command includes 2 arguments
 --args $input $ref_path
