@@ -87,11 +87,11 @@ The second reference data set is the 450k train data including 2557 samples, the
 The two data sets can downloaded from website.
 
 3. norm_method
-normalization methods
+
 There are two options: simplified normalization method and quantile normalization method.
 
 4. assembly
-human genome assembly version
+
 There are two assembly version: GRCh37 and GRCh38.
 
 
