@@ -18,7 +18,7 @@ mkdir -p $log_path
 
 R CMD BATCH --no-save --no-restore '--args /input_path /ref_path/' $R_code $log_file
 
-Description
+Description:
 
 R command includes 2 arguments
 --args $input $ref_path
