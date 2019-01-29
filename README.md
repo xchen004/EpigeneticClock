@@ -9,9 +9,13 @@ The clock is used to predict DNAm age of array based methylation data. Please ru
 Example:
 
 R_code=/code_path/Predict_Age_Human_Array.R
+
 log_path=/path_to_log_file
+
 log_file=/log_path/get_DNAm_age_log.txt
+
 mkdir -p $log_path
+
 R CMD BATCH --no-save --no-restore '--args /input_path /ref_path/' $R_code $log_file
 
 Description
