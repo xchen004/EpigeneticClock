@@ -6,90 +6,6 @@ norm_method <- args[[4]]
 assembly <- args[[5]]
 
 
-library(methylKit)
-library(rrBLUP)
-library(preprocessCore)
-
-
-load(paste(ref_path,"da_union_train_norm.Rdata",sep=""))
-da_train <- results[[1]]
-
-cpg_id <- rownames(da_train)
-pos <- unlist(gregexpr("_",cpg_id))
-chr_names <- substr(cpg_id,1,pos-1)
-cpg_pos <- as.numeric(substr(cpg_id,pos+1,99))
-cpg_train_grange <- GRanges(chr_names,IRanges(start=cpg_pos,end=cpg_pos))
-
-sample <- list.files(input,pattern = ".txt")
-loc <- as.list(paste(input,sample,sep=""))
-if(length(grep(".txt.gz",sample)) > 0)
-{sample.id <- as.list(sub(".txt.gz","",sample))}
-if(length(grep(".txt.gz",sample)) == 0)
-{sample.id <- as.list(sub(".txt","",sample))}
-sampleNum <- length(sample)
-caseNum <- round(sampleNum/2)
-design <- c(rep(1,caseNum),rep(0,sampleNum-caseNum))
-
-da_cpg <- methRead(loc,sample.id=sample.id,assembly=assembly,treatment=design,context="CpG",mincov=cov_min)
-
-
-####################
-## get union beta ##
-####################
-
-beta <- getData(da_cpg[[1]])
-beta_grange <- GRanges(beta[,1],IRanges(start=beta[,2],end=beta[,2]))
-index <- findOverlaps(query=beta_grange,subject=cpg_train_grange)
-beta <- beta[queryHits(index),]
-beta_grange <- beta_grange[queryHits(index)]
-
-n <- rep(1,nrow(beta))
-
-for(i in 2:length(da_cpg))
-{
-	temp <- getData(da_cpg[[i]])
-	temp_grange <- GRanges(temp[,1],IRanges(start=temp[,2],end=temp[,2]))
-	index <- findOverlaps(query=temp_grange,subject=cpg_train_grange)
-	temp <- temp[queryHits(index),]
-	temp_grange <- temp_grange[queryHits(index)]
-
-	index <- findOverlaps(query=beta_grange,subject=temp_grange)
-
-	temp_grange2 <- temp_grange[-subjectHits(index)]
-
-	n[queryHits(index)] <- n[queryHits(index)]+1
-	n <- c(n,rep(1,length(temp_grange2)))
-	beta_grange <- c(beta_grange,temp_grange2)
-}
-
-miss_cutoff <- 0.1
-beta_grange <- beta_grange[n >= (1-miss_cutoff)*length(da_cpg)]
-
-
-beta <- matrix(999,ncol=length(sample),nrow=length(beta_grange))
-
-for(i in 1:length(da_cpg))
-{
-	temp <- getData(da_cpg[[i]])
-	temp_grange <- GRanges(temp[,1],IRanges(start=temp[,2],end=temp[,2]))
-	index <- findOverlaps(query=beta_grange,subject=temp_grange)
-
-	temp_beta <- temp[subjectHits(index),]
-	beta[queryHits(index),i] <- round(temp_beta[,6]/temp_beta[,5],4)
-}
-
-meth_id <- paste(seqnames(beta_grange),"_",start(beta_grange),sep="")
-rownames(beta) <- meth_id
-colnames(beta) <- unlist(sample.id)
-#save(beta,file=paste(output,"beta_union_",geo,"_",assembly,"_bismark.Rdata",sep=""))
-
-
-
-##################
-## get DNAm age ##
-##################
-
-
 age_transform <- function(age)
 {
 	age <- age
@@ -200,11 +116,99 @@ age_predict <- function(beta,beta_train,age)
 }
 
 
-age_train <- results[[2]]
+library(methylKit)
+library(rrBLUP)
+library(preprocessCore)
+
+
+load(paste(ref_path,"da_union_train_norm.Rdata",sep=""))
+da_train <- t(results[[1]])
+
+
+age_train <- results[[2]]$age
 age_train_adj <- log(age_train+3)
-age <- read.csv(paste(input,"/age.csv",sep=""),row.names=1)
-age <- age[match(colnames(beta),rownames(age)),]
-da_train <- t(da_train)
+
+clin_file <- list.files(input,pattern=".csv")
+clin <- read.csv(paste(input,clin_file,sep=""),row.names=1)
+
+
+cpg_id <- colnames(da_train)
+pos <- unlist(gregexpr("_",cpg_id))
+chr_names <- substr(cpg_id,1,pos-1)
+cpg_pos <- as.numeric(substr(cpg_id,pos+1,99))
+cpg_train_grange <- GRanges(chr_names,IRanges(start=cpg_pos,end=cpg_pos))
+
+sample <- list.files(input,pattern = ".txt")
+loc <- as.list(paste(input,sample,sep=""))
+if(length(grep(".txt.gz",sample)) > 0)
+{sample.id <- as.list(sub(".txt.gz","",sample))}
+if(length(grep(".txt.gz",sample)) == 0)
+{sample.id <- as.list(sub(".txt","",sample))}
+sampleNum <- length(sample)
+caseNum <- round(sampleNum/2)
+design <- c(rep(1,caseNum),rep(0,sampleNum-caseNum))
+
+
+
+da_cpg <- methRead(loc,sample.id=sample.id,assembly=assembly,treatment=design,context="CpG",mincov=cov_min)
+
+
+####################
+## get union beta ##
+####################
+
+beta <- getData(da_cpg[[1]])
+beta_grange <- GRanges(beta[,1],IRanges(start=beta[,2],end=beta[,2]))
+index <- findOverlaps(query=beta_grange,subject=cpg_train_grange)
+beta <- beta[queryHits(index),]
+beta_grange <- beta_grange[queryHits(index)]
+
+n <- rep(1,nrow(beta))
+
+for(i in 2:length(da_cpg))
+{
+	temp <- getData(da_cpg[[i]])
+	temp_grange <- GRanges(temp[,1],IRanges(start=temp[,2],end=temp[,2]))
+	index <- findOverlaps(query=temp_grange,subject=cpg_train_grange)
+	temp <- temp[queryHits(index),]
+	temp_grange <- temp_grange[queryHits(index)]
+
+	index <- findOverlaps(query=beta_grange,subject=temp_grange)
+
+	temp_grange2 <- temp_grange[-subjectHits(index)]
+
+	n[queryHits(index)] <- n[queryHits(index)]+1
+	n <- c(n,rep(1,length(temp_grange2)))
+	beta_grange <- c(beta_grange,temp_grange2)
+}
+
+miss_cutoff <- 0.1
+beta_grange <- beta_grange[n >= (1-miss_cutoff)*length(da_cpg)]
+
+
+beta <- matrix(999,ncol=length(sample),nrow=length(beta_grange))
+
+for(i in 1:length(da_cpg))
+{
+	temp <- getData(da_cpg[[i]])
+	temp_grange <- GRanges(temp[,1],IRanges(start=temp[,2],end=temp[,2]))
+	index <- findOverlaps(query=beta_grange,subject=temp_grange)
+
+	temp_beta <- temp[subjectHits(index),]
+	beta[queryHits(index),i] <- round(temp_beta[,6]/temp_beta[,5],4)
+}
+
+meth_id <- paste(seqnames(beta_grange),"_",start(beta_grange),sep="")
+rownames(beta) <- meth_id
+colnames(beta) <- unlist(sample.id)
+#save(beta,file=paste(output,"beta_union_",geo,"_",assembly,"_bismark.Rdata",sep=""))
+
+clin <- clin[match(colnames(beta),rownames(clin)),]
+
+
+##################
+## get DNAm age ##
+##################
 
 
 ## 1. process beta
@@ -223,18 +227,19 @@ if(norm_method=="quantile_norm")
 ## 3. prediction
 
 age_pred <- age_predict(beta_norm,da_train,age_train_adj)
-age_file <- round(cbind(as.numeric(age$age),age_pred[[1]]),2)
+age_file <- round(cbind(as.numeric(clin$age),age_pred[[1]]),2)
 colnames(age_file) <- c("Biological age","Methylation age")
-rownames(age_file) <- rownames(age)
+rownames(age_file) <- rownames(clin)
 cpgEffect <- c(age_pred[[2]]$beta,age_pred[[2]]$u)
 names(cpgEffect) <- c("beta",names(age_pred[[2]]$u))
 
 output <- paste(input,"/age_pred/cov_",cov_min,"/",sep="")
 dir.create(output,recursive=T)
 
-write.csv(round(age_file,2),file=paste(output,"/DNAm_age.csv",sep=""),row.names=T)
+write.csv(round(age_file,2),file=paste(output,"/DNAm_age_",norm_method,".csv",sep=""),row.names=T)
 write.csv(cpgNum,file=paste(output,"/cpgNum.csv",sep=""),row.names=F)
-write.csv(round(cpgEffect,5),file=paste(output,"/cpgEffect.csv",sep=""),row.names=T)
+write.csv(round(cpgEffect,5),file=paste(output,"/cpgEffect_",norm_method,".csv",sep=""),row.names=T)
+
 
 
 
