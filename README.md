@@ -1,6 +1,10 @@
 # Three Epigenetic Clocks
 
-We develop three epigenetic clocks: Array based human epigenetic clock, sequencing based human epigenetic clock and one mouse epigenetic clock.
+We develop three epigenetic clocks: Array based human epigenetic clock, sequencing based human epigenetic clock and one mouse epigenetic clock. Please go to google drive to download reference data sets.
+Google drive link:
+https://drive.google.com/drive/folders/1-Q3iTEQeLOjSLTqZrmGOhuxJjafRydy2?usp=sharing
+
+Please do not change the name of reference data sets.
 
 ## Array based human epigenetic clock
 
@@ -32,7 +36,7 @@ each column of beta.rdata file represents sample.
 
 ref_path folder contains one reference data set which will be used for DNAm age prediction.
 The reference data set is the train data including 3665 samples, their chronological ages and 21723 CpGs to develop model.
-The data set can be downloaded from website.
+The data set can be downloaded from above google drive link.
 
 ## Sequencing based human epigenetic clock
 
@@ -84,7 +88,7 @@ The chronological age file contains "sample_id" and "age" column showing the chr
 ref_path folder contains two reference data sets which will be used for DNAm age prediction.
 The first reference data set is the CpG annotation file of illumina 450k array.
 The second reference data set is the 450k train data including 2557 samples, their chronological ages and 469279 CpGs to develop model.
-The two data sets can downloaded from website.
+The two data sets can downloaded from above google drive link.
 
 3. norm_method
 
@@ -142,7 +146,7 @@ The chronological age information contains "age" column showing the chronologica
 
 ref_path folder contains one reference data set which will be used for DNAm age prediction.
 The reference data set is the RRBS train data including 280 samples, their chronological ages and 1180864 CpGs to develop model.
-The data set can downloaded from website.
+The data set can downloaded from above google drive link..
 
 
 3. cov_min
