@@ -173,7 +173,8 @@ if(assembly=="GRCh38")
 {da_train_450k <- da_train_450k[,index_grch38]}
 age_train <- results[[2]]
 age_train_adj <- age_transform(age_train,20)
-age <- read.csv(paste(input,"/age.csv",sep=""),row.names=1)
+clin_file <- list.files(input,pattern=".csv")
+clin <- read.csv(paste(input,clin_file,sep=""),row.names=1)
 
 
 cpgNum <- c()
@@ -181,9 +182,12 @@ age_file <- c()
 cpgNum_indc <- 20001
 cov_min <- 1
 
+da_cpg <- methRead(loc,sample.id=sample.id,assembly=assembly,treatment=design,context="CpG",mincov=cov_min)
+
 while(cpgNum_indc > 20000 && cov_min <= 10)
 {
-da_cpg <- methRead(loc,sample.id=sample.id,assembly=assembly,treatment=design,context="CpG",mincov=cov_min)
+if(cov_min > 1)
+{da_cpg <- filterByCoverage(da_cpg,lo.count=cov_min)}
 
 ####################
 ## get union beta ##
@@ -237,7 +241,7 @@ meth_id <- paste(seqnames(beta_grange),"_",start(beta_grange),sep="")
 rownames(beta) <- meth_id
 colnames(beta) <- unlist(sample.id)
 #save(beta,file=paste(output,"beta_union_",assembly,"_bismark.Rdata",sep=""))
-age <- age[match(colnames(beta),rownames(age)),]
+clin <- clin[match(colnames(beta),rownames(clin)),]
 
 
 
@@ -270,15 +274,15 @@ if(norm_method=="quantile_norm")
 
 age_pred <- DNAm_age_predict(beta,da_train,age_train_adj)
 if(assembly=="GRCh37")
-{age_adj <- age_pred[[1]]+age$age*0.51916-0.002074*age$age^2-0.732037}
+{age_adj <- age_pred[[1]]+clin$age*0.51916-0.002074*clin$age^2-0.732037}
 if(assembly=="GRCh38")
-{age_adj <- age_pred[[1]]+age$age*0.2560243+0.0008109*age$age^2+2.4097794}
-age_adj[age$age==0] <- age_pred[[1]][age$age==0]
+{age_adj <- age_pred[[1]]+clin$age*0.2560243+0.0008109*clin$age^2+2.4097794}
+age_adj[clin$age==0] <- age_pred[[1]][clin$age==0]
 
 age_file <- cbind(age_file,age_pred[[1]],age_adj)
-age_file2 <- cbind(age$age,age_pred[[1]],age_adj)
+age_file2 <- cbind(clin$age,age_pred[[1]],age_adj)
 colnames(age_file2) <- c("Biological age","Methylation age unadj","Methylation age adj")
-rownames(age_file2) <- rownames(age)
+rownames(age_file2) <- rownames(clin)
 cpgEffect <- c(age_pred[[2]]$beta,age_pred[[2]]$u)
 names(cpgEffect) <- c("beta",names(age_pred[[2]]$u))
 write.csv(round(age_file2,2),file=paste(output,"/DNAm_age.csv",sep=""),row.names=T)
@@ -296,16 +300,10 @@ cov_indc <- 1:length(cpgNum)
 age_unadj_mean <- apply(age_unadj[,cov_indc],1,mean)
 age_adj_mean <- apply(age_adj[,cov_indc],1,mean)
 
-age_file <- cbind(age$age,age_unadj,age_adj,age_unadj_mean,age_adj_mean)
+age_file <- cbind(clin$age,age_unadj,age_adj,age_unadj_mean,age_adj_mean)
 
 colnames(age_file) <- c("Biological age",paste("Methylation age unadj cov",cov_indc,sep="_"),paste("Methylation age adj cov",cov_indc,sep="_"),"Methylation age unadj","Methylation age adj")
-rownames(age_file) <- rownames(age)
+rownames(age_file) <- rownames(clin)
 
 write.csv(round(age_file,2),file=paste(input,"/age_pred/DNAm_age_all.csv",sep=""),row.names=T)
-
-
-
-
-
-
 
